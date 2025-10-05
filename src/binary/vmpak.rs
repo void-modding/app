@@ -1,9 +1,11 @@
 use std::{fs::File, io::{self, Read, Seek, SeekFrom, Write}, path::Path};
 
 // File identifier: V M P K (0x56, 0x4D, 0x50, 0x4B)
+#[allow(dead_code)] // Even though its used further down
 pub const VMPAK_MAGIC: u32 = 0x4B504D56; // Sorted litte-endian: 0x564D504B
 
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 pub struct VmpakHeader {
     pub magic: u32,
     pub format_version: u16,
@@ -14,6 +16,7 @@ pub struct VmpakHeader {
     pub reserved: u8
 }
 
+#[allow(dead_code)]
 pub fn implement_vmpak_example(filepath: &Path) -> io::Result<()> {
     let mut file = File::create(filepath)?;
     let metadata_string = "Creator: Test User\nDescription: My first vmpak";
@@ -71,6 +74,7 @@ pub fn implement_vmpak_example(filepath: &Path) -> io::Result<()> {
 
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct VmpakMetadata {
     pub creator: String,
     pub description: String

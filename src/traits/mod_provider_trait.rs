@@ -4,6 +4,7 @@ use crate::core::ProviderApi;
 
 // Temporary location
 #[derive(Default, Debug)]
+#[allow(dead_code)] // <- While we're still figuring things out
 pub struct ModProviderFeatures {
     pub supports_endorsements: bool,
     pub requires_api_token: bool,
@@ -20,6 +21,7 @@ pub enum ModDownloadResult {
     CannotComplete(String)
 }
 
+#[allow(dead_code)]
 pub trait ModProvider {
     fn new(api: Arc<dyn ProviderApi>) -> Self;
 
@@ -38,10 +40,5 @@ pub trait ModProvider {
 
     fn register(&self) -> String {
         todo!("Here, we'd register the games for the provider");
-    }
-
-    fn optional() -> String {
-        log::warn!("Optional called, but not overriden");
-        String::from("Optional")
     }
 }

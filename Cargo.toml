@@ -3,6 +3,9 @@ name = "VMM"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+unstable-nexus = []
+
 [dependencies]
 async-trait = "0.1.89"
 fern = "0.7.1"
