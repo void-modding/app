@@ -1,5 +1,4 @@
 use std::{env::temp_dir, path::PathBuf};
-use std::error::Error;
 
 use async_trait::async_trait;
 use futures_util::StreamExt;
@@ -10,6 +9,7 @@ use tokio::{fs::File, io::AsyncWriteExt, sync::{mpsc, watch::{self, Sender}}};
 use crate::traits::ModDownloadResult;
 
 pub struct QueuedDownload {
+    #[allow(dead_code)]
     pub mod_id: String,
     pub url: String,
     pub progress: Sender<ModDownloadResult>
@@ -44,7 +44,7 @@ impl DefaultDownloadService {
 
     // This will be used to make it easier for Providers to download files, and so we can display them in the UI
     async fn process_download(download: QueuedDownload) {
-        let QueuedDownload { mod_id, url, progress } = download;
+        let QueuedDownload { mod_id: _, url, progress } = download;
 
         let client = Client::new();
         let resp = match client.get(&url).send().await {
