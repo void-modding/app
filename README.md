@@ -34,21 +34,21 @@
 
 ## About The Project
 
-Void Mod Manager is a fast, lightweight and user-friendly tool for managing game mods. Designed for simplicity and performace, Void helps you install, update, enable and disable mods with ease. Built in Rust, Void leverages the language's safety and speed to deliver a reliable experience for gamers and modders alike.
+Void Mod Manager is a fast, lightweight and user-friendly tool for managing game mods. Designed for simlicity and performance, Void helps you install, update, enable and disable mods with ease. Built in Rust, Void leverages the language's safety and speed to deliver a reliable experience for gamers and modders alike.
 
 ### Key features:
 
 - Easy mod installation and management
 - Clean and intuitive interface
-- Fast performace, even with large mods libraries
+- Fast performance, even with large mods libraries
 - Cross-platform support (Linux and Windows)
 - Open source and community-driven
 
-Wether you're a casual gamer or a modding enthusiast, Void aims to make mod management effortless and enjoyable.
+Whether you're a casual gamer or a modding enthusiast, Void aims to make mod management effortless and enjoyable.
 
 ## Getting Started
 
-You can either download one of the re-compiled apps or build from source
+You can either download one of the pre-compiled apps or build from source
 
 ### Prerequisites
 
@@ -72,7 +72,7 @@ WIP
 
 ## License
 
-Distributed under "PLACEHOLDER" License. See LICENSE.txt for more infomation
+Distributed under "PLACEHOLDER" License. See LICENSE.txt for more information
 
 ## Contact
 
