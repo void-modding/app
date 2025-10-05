@@ -1,10 +1,8 @@
 <a id="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![Unlicense License][license-shield]][license-url]
+![GitHub contributors](https://img.shields.io/github/contributors/NotGhoull/void-mod-manager)
+![GitHub forks](https://img.shields.io/github/forks/notghoull/void-mod-manager)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/notghoull/void-mod-manager)
 
 <!-- TABLE OF CONTENTS -->
 <details>
