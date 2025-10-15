@@ -1,24 +1,51 @@
-import { cn } from "@/lib/styleUtils";
-import { BugIcon, LibraryIcon, LucideIcon, SearchIcon, SettingsIcon } from "lucide-react";
+import {
+  BugIcon,
+  LibraryIcon,
+  type LucideIcon,
+  SearchIcon,
+  SettingsIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { env } from "process";
+import { cn } from "@/lib/styleUtils";
 
 type NavItem = {
-  id: string,
-  label: string,
-  icon: LucideIcon,
-  path: string,
-  predicate?: () => boolean
-}
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  path: string;
+  predicate?: () => boolean;
+};
 
 const navItems: NavItem[] = [
-  { id: "library" as const, label: "Library", path: "/library", icon: LibraryIcon},
-  { id: "discover" as const, label: "Discover", path: "/discover", icon: SearchIcon},
-  { id: "settings" as const, label: "Settings", path: "/settings", icon: SettingsIcon},
-  { id: "debug" as const, label: "Debug", path: "/debug", icon: BugIcon, predicate:() => { return process.env.NODE_ENV == "development";} },
-
-]
+  {
+    id: "library" as const,
+    label: "Library",
+    path: "/library",
+    icon: LibraryIcon,
+  },
+  {
+    id: "discover" as const,
+    label: "Discover",
+    path: "/discover",
+    icon: SearchIcon,
+  },
+  {
+    id: "settings" as const,
+    label: "Settings",
+    path: "/settings",
+    icon: SettingsIcon,
+  },
+  {
+    id: "debug" as const,
+    label: "Debug",
+    path: "/debug",
+    icon: BugIcon,
+    predicate: () => {
+      return process.env.NODE_ENV === "development";
+    },
+  },
+];
 
 export function Sidebar() {
   const pathname = usePathname() ?? "/";
@@ -31,8 +58,12 @@ export function Sidebar() {
             <p className="text-primary font-bold">?</p>
           </div>
           <div>
-            <h1 className="font-semibold text-sm text-sidebar-foreground">Void Mod Manager</h1>
-            <p className="text-[10px] text-muted-foreground font-mono uppercase">Dev /// {process.env.NEXT_PUBLIC_COMMIT_SHA}</p>
+            <h1 className="font-semibold text-sm text-sidebar-foreground">
+              Void Mod Manager
+            </h1>
+            <p className="text-[10px] text-muted-foreground font-mono uppercase">
+              Dev {"///"} {process.env.NEXT_PUBLIC_COMMIT_SHA}
+            </p>
           </div>
         </div>
       </div>
@@ -46,30 +77,36 @@ export function Sidebar() {
       <nav className="flex-1 p-3">
         <ul className="space-y-0.5">
           {navItems.map((item) => {
-            if (item.predicate != undefined && item.predicate() != true) {
-              return null
+            if (item.predicate !== undefined && item.predicate() !== true) {
+              return null;
             }
 
-            const Icon = item.icon
-            const isSelected = item.path ? pathname.startsWith(item.path) : false
+            const Icon = item.icon;
+            const isSelected = item.path
+              ? pathname.startsWith(item.path)
+              : false;
 
             return (
-             <li key={item.id}>
-               <Link href={item.path} className={cn("w-full flex items-center justify-between px-2 py-2 rounded-md text-sm transition-colors group",
-                 isSelected
-                 ? "bg-muted text-foreground" :
-                 "text-muted-foreground hover:bg-muted/50 hover:text-foreground")}>
-                 <div className="flex items-center gap-2">
-                   <Icon className="w-4 h-4" />
+              <li key={item.id}>
+                <Link
+                  href={item.path}
+                  className={cn(
+                    "w-full flex items-center justify-between px-2 py-2 rounded-md text-sm transition-colors group",
+                    isSelected
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4" />
                     <span className="font-normal">{item.label}</span>
-                 </div>
-
-               </Link>
-             </li>
-            )
+                  </div>
+                </Link>
+              </li>
+            );
           })}
         </ul>
       </nav>
     </aside>
-  )
+  );
 }

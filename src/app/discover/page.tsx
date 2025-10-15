@@ -1,7 +1,8 @@
 "use client";
 
+import { DownloadIcon, SearchIcon } from "lucide-react";
+import Image from "next/image";
 import Input from "@/components/input";
-import { DownloadIcon, SearchIcon, StarIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 
 const mods = [
   {
@@ -11,46 +12,48 @@ const mods = [
     downloads: 1,
     category: ["Filter", "Filter 2"],
     // image: "/placeholder.svg",
-    description: "This is my mod description, or something maybe please work it works that's crazy, why didn't it work before?",
+    description:
+      "This is my mod description, or something maybe please work it works that's crazy, why didn't it work before?",
     version: "1.0.0",
     lastUpdate: "DATE",
     dependencies: [],
-    screenshots: []
+    screenshots: [],
   },
   {
-    id: 2
+    id: 2,
   },
   {
-    id: 3
+    id: 3,
   },
   {
-    id: 4
+    id: 4,
   },
   {
-    id: 5
+    id: 5,
   },
   {
-    id: 6
-  }
-]
+    id: 6,
+  },
+];
 
 export default function Discover() {
-
   // We'd get this value from the ModProvider (capablities field)
-  const categories = ["Filter"]
+  const _categories = ["Filter"];
 
   return (
     <div className="h-full flex flex-col pr-4 pl-4">
       <header className="border-b border-border/40 bg-background">
         <div className="pt-6 pb-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-medium text-foreground">Discover new mods</h2>
+            <h2 className="text-xl font-medium text-foreground">
+              Discover new mods
+            </h2>
           </div>
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-            placeholder="Search for mods"
-            className="pl-9 h-10 text-sm bg-background border-border/40 focus-visible:border-border"
+              placeholder="Search for mods"
+              className="pl-9 h-10 text-sm bg-background border-border/40 focus-visible:border-border"
             />
           </div>
         </div>
@@ -89,10 +92,13 @@ export default function Discover() {
               >
                 {/* Image Section */}
                 <div className="relative aspect-video overflow-hidden bg-muted/30">
-                  <img
-                    src={"https://placehold.co/600x400"}
+                  <Image
+                    src="https://placehold.co/600x400"
                     alt={mod.name ?? "Unknown mod"}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    // for nextjs happiness
+                    width={0}
+                    height={0}
                   />
                   <div className="absolute top-2 right-2 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs text-foreground/80">
                     <DownloadIcon className="w-4 h-4 opacity-80" />
@@ -111,10 +117,13 @@ export default function Discover() {
 
                     <div className="flex items-center text-xs sm:text-sm text-muted-foreground mb-3 flex-wrap gap-1">
                       <span>By</span>
-                      <img
+                      <Image
                         src={"https://placehold.co/128x128"}
-                        alt={mod.author}
+                        alt={mod.author ?? "Unknown Author"}
                         className="inline-block w-5 h-5 rounded-full mx-1"
+                        // for nextjs happiness
+                        width={0}
+                        height={0}
                       />
                       <span className="font-medium text-foreground/80">
                         {mod.author ?? "???"}
@@ -133,7 +142,8 @@ export default function Discover() {
                     </div>
 
                     <p className="text-sm text-muted-foreground line-clamp-3 text-ellipsis group-hover:text-foreground/90 transition-colors">
-                      {mod.description || "No description provided for this mod"}
+                      {mod.description ||
+                        "No description provided for this mod"}
                     </p>
                   </div>
                 </div>
@@ -143,5 +153,5 @@ export default function Discover() {
         </div>
       </div>
     </div>
-  )
+  );
 }
