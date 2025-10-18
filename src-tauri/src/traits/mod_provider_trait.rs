@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tokio::sync;
+
 use crate::core::ProviderApi;
 
 // Temporary location
@@ -22,8 +24,9 @@ pub enum ModDownloadResult {
 }
 
 #[allow(dead_code)]
-pub trait ModProvider {
-    fn new(api: Arc<dyn ProviderApi>) -> Self;
+#[async_trait::async_trait]
+pub trait ModProvider: Send + Sync {
+    // fn new(api: Arc<dyn ProviderApi>) -> Self;
 
     // Due to how this might be made, we may need a
     // `start_download` and a `tick_download` or `query_download`
