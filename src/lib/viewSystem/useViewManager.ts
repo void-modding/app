@@ -8,7 +8,7 @@ export interface ViewManager<V extends string> {
 
 export function useViewManager<V extends string>(
   initialView: V,
-  allViews?: Readonly<V[]>,
+  _allViews?: Readonly<V[]>,
 ): ViewManager<V> {
   const [currentView, setCurrentView] = useState<V>(initialView);
 

@@ -1,8 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useViewManager } from "@/lib/viewSystem/useViewManager";
 import { View } from "@/lib/viewSystem/View";
-import React, { useEffect, useState } from "react";
 
 async function getCurrentGame(): Promise<string> {
   return "a";
