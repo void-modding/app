@@ -7,14 +7,19 @@ pub struct ModWorkShopProvider {
     api: Arc<dyn ProviderApi>
 }
 
-impl ModProvider for ModWorkShopProvider {
-    fn new(api: Arc<dyn ProviderApi>) -> Self {
+impl ModWorkShopProvider {
+    pub fn new(api: Arc<dyn ProviderApi>) -> Self {
         Self { api }
     }
+}
+
+#[async_trait::async_trait]
+impl ModProvider for ModWorkShopProvider {
 
     fn configure(&self) -> &crate::traits::ModProviderFeatures {
         todo!("Configure")
     }
+
 
     async fn download_mod(&self, _mod_id: String) -> crate::traits::ModDownloadResult {
         //let target = format!("https://api.modworkshop.net/mods/{}", mod_id);
@@ -39,6 +44,6 @@ impl ModProvider for ModWorkShopProvider {
     }
 
     fn register(&self) -> String {
-        std::todo!("Here, we'd register the games for the provider");
+        "core:modworkshop".into()
     }
 }

@@ -30,7 +30,7 @@ export function View<V extends string>({
       {children}
     </Wrapper>
   ) : active ? (
-    <>{children}</>
+    {children}
   ) : null;
 
   return content;

@@ -1,0 +1,188 @@
+use std::{collections::HashMap, sync::{Arc, Mutex}};
+
+
+use crate::traits::{GameProvider, ModProvider};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ProviderSource {
+    Core,
+    Plugin(String) // plugin ID/name
+}
+
+pub struct ProviderEntry {
+    pub id: String,
+    pub source: ProviderSource,
+    pub provider: Arc<dyn ModProvider + Send + Sync>
+}
+
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum RegistryError {
+    #[error("Invalid id: {0}")]
+    InvalidId(String),
+    #[error("Duplicate provider id: {0}")]
+    ProviderAlreadyExists(String),
+    #[error("Duplicate game provider: {0}")]
+    GameAlreadyExists(String),
+    #[error("Cannot use reserved identifier \"core\" for non core implementations ({0})")]
+    ReservedCoreId(String),
+    #[error("Cannot find id {0}")]
+    NotFound(String)
+}
+
+pub fn normalize_id(raw: &str) -> Result<String, RegistryError> {
+    let s = raw.trim().to_lowercase();
+    if s.is_empty() || s.len() > 200 {
+        return Err(RegistryError::InvalidId(format!("ID \"{}\" is invalid.", raw.to_owned())));
+    }
+
+    let mut seen_colon = false;
+    for (i, ch) in s.chars().enumerate() {
+        match ch {
+            'a'..='z' | '0'..='9' | '.' | '_' | '-' => {}
+            ':' if !seen_colon && i > 0 && i < s.len() - 1 => {
+                seen_colon = true;
+            }
+            _ => return Err(RegistryError::InvalidId(format!("ID: \"{}\" contains invalid character \"{}\" at position {}",raw.to_owned(), ch, i))),
+        }
+    }
+
+    println!("Normalized Id! {}", {&s});
+    Ok(s)
+}
+
+pub struct GameEntry {
+    pub id: String,
+    pub source: ProviderSource,
+    pub game: Arc<dyn GameProvider + Send + Sync>,
+    pub required_provider_id: String,
+}
+
+pub struct ContextBuilder {
+    mod_providers: HashMap<String, ProviderEntry>,
+    games: HashMap<String, GameEntry>
+}
+
+impl ContextBuilder {
+    pub fn new() -> Self {
+        Self {
+            mod_providers: HashMap::new(),
+            games: HashMap::new(),
+        }
+    }
+
+    pub fn register_mod_provider(&mut self, id: &str, provider: Arc<dyn ModProvider + Send + Sync>, source: ProviderSource) -> Result<(), RegistryError> {
+        let id = normalize_id(id)?;
+        if id.starts_with("core:") && !matches!(source, ProviderSource::Core) {
+            return Err(RegistryError::ReservedCoreId(id),)
+        }
+
+        if self.mod_providers.contains_key(&id) {
+            return Err(RegistryError::ProviderAlreadyExists(id));
+        }
+
+        self.mod_providers.insert(id.clone(), ProviderEntry {
+            id,
+            source,
+            provider
+        });
+
+        Ok(())
+    }
+
+    pub fn register_game_provider(&mut self, provider: Arc<dyn GameProvider + Send + Sync>, source: ProviderSource) -> Result<(), RegistryError> {
+        let id = normalize_id(provider.game_id())?;
+        if self.games.contains_key(&id) {
+            return Err(RegistryError::GameAlreadyExists(id));
+        }
+
+        let depends_on = normalize_id(provider.mod_provider_id())?;
+
+        if !self.mod_providers.contains_key(&depends_on) {
+            return Err(RegistryError::NotFound(depends_on));
+        }
+
+        self.games.insert(id.clone(), GameEntry {
+            id,
+            source,
+            game: provider,
+            required_provider_id: depends_on
+        });
+
+        Ok(())
+    }
+
+    pub fn freeze(self) -> Context {
+        Context {
+            mod_providers: Arc::new(self.mod_providers),
+            game_providers: Arc::new(self.games),
+            active_game: Mutex::new(None),
+        }
+    }
+}
+
+pub struct Context {
+    mod_providers: Arc<HashMap<String, ProviderEntry>>,
+    game_providers: Arc<HashMap<String, GameEntry>>,
+    active_game: Mutex<Option<String>>
+}
+
+
+impl Context {
+    pub fn get_mod_provider(&self, id: &str) -> Result<Arc<dyn ModProvider + Send + Sync>, RegistryError> {
+        let id = normalize_id(id)?;
+        self.mod_providers
+            .get(&id)
+            .map(|e| Arc::clone(&e.provider))
+            .ok_or_else(|| RegistryError::NotFound(id))
+    }
+
+    pub fn list_mod_providers(&self) -> Vec<(String, ProviderSource)> {
+        self.mod_providers
+            .values()
+            .map(|e| (e.id.clone(), e.source.clone()))
+            .collect()
+    }
+
+    pub fn list_games(&self) -> Vec<(String, ProviderSource, String)> {
+        self.game_providers
+            .values()
+            .map(|g| (g.id.clone(), g.source.clone(), g.required_provider_id.clone()))
+            .collect()
+    }
+
+    pub fn activate_game(&self, id: &str) -> Result<(), RegistryError> {
+        let id = normalize_id(id)?;
+        if !self.game_providers.contains_key(&id) {
+            return Err(RegistryError::NotFound(id));
+        }
+        let mut active = self.active_game.lock().unwrap();
+        *active = Some(id);
+        Ok(())
+    }
+
+    pub fn active_game(&self) -> Option<String> {
+        self.active_game.lock().unwrap().clone()
+    }
+
+    pub fn active_game_required_provider(&self) -> Option<String> {
+        let active = self.active_game();
+        active.and_then(|id| {
+            self.game_providers
+                .get(&id)
+                .map(|g| g.required_provider_id.clone())
+        })
+    }
+
+    #[cfg(debug_assertions)]
+    pub fn debug_dump(&self) {
+        println!("Context dump\n ---> Providers");
+        for (id, provider) in self.mod_providers.iter() {
+            println!("\t{} ({:?})", id, provider.source)
+        }
+        println!("\n ---> Games");
+        for (id, game) in self.game_providers.iter() {
+            println!("\t{} ({:?}) -> Depends on {}", id, game.source, game.required_provider_id)
+        }
+    }
+
+}
