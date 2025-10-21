@@ -44,9 +44,58 @@ const Discover = () => {
     })();
   }, []);
 
+  const example_impl: ModOverlay.Props = {
+    name: "Ghostface DLC",
+    banner:
+      "https://storage.modworkshop.net/mods/images/DKOio49b4b8qQe0PpmsJnvq1i96kfrWfhwq0b7fn.webp",
+    authors: [
+      {
+        name: "?",
+        image: "https://storage.modworkshop.net/users/images/avatar_31157.jpg",
+      },
+      {
+        name: "?",
+        image: "https://storage.modworkshop.net/users/images/avatar_55826.png",
+      },
+      {
+        name: "?",
+        image:
+          "https://storage.modworkshop.net/users/images/thumbnail_pyMh1U95zK74s4MHF7bgwY2edR2Zkv9H4FE8e6eZ.webp",
+      },
+      {
+        name: "NeTheQ_",
+        image:
+          "https://storage.modworkshop.net/users/images/thumbnail_sRnkf2T698NONHeH0iIK10oumOXD2bpRkXWCM3Pv.webp",
+      },
+    ],
+    tags: ["Lua", "Port", "Retexture", "QoL", "... View more (16)"],
+    images: [
+      "https://storage.modworkshop.net/mods/images/YQ1pRPgFdHINtzbJQLS5yWUNO9SAN0K2qcMlIAeE.webp",
+    ],
+
+    dependencies: [
+      {
+        name: "SuperBLT",
+        image: "https://modworkshop.net/assets/no-preview.webp",
+        installed: true,
+      },
+      {
+        name: "BeardLib",
+        image:
+          "https://storage.modworkshop.net/mods/images/11_1593725256_a753bab2112510a83a93624a59778c2a.png",
+        installed: false,
+      },
+    ],
+    description: "This is the description, lorem ipsum was getting too long",
+    version: "1.2.3",
+    downloads: "1,320",
+    likes: "1,200",
+    supportsDonations: true,
+  };
+
   return (
     <div className="flex h-full flex-col pr-4 pl-4">
-      <ModOverlay />
+      <ModOverlay {...example_impl} />
       <header className="border-border/40 border-b bg-background">
         <div className="space-y-4 pt-6 pb-6">
           <div className="flex items-center justify-between">
