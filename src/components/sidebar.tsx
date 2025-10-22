@@ -70,16 +70,18 @@ type GameMetadata = {
   provider_source: "core" | "plugin";
 };
 
-async function handleGameChange(newGame: string) {
-  console.debug("Game changed!");
-  await invoke("set_active_game", { id: newGame });
-  const event = new CustomEvent("gameChanged");
-  window.dispatchEvent(event);
-}
-
 const Sidebar = () => {
   const pathname = usePathname() ?? "/";
   const [games, setGames] = useState<GameMetadata[]>();
+  const [activeGameId, setActiveGameId] = useState<string | undefined>();
+
+  async function handleGameChange(newGame: string) {
+    console.debug("Game changed!");
+    await invoke("set_active_game", { id: newGame });
+    setActiveGameId(newGame);
+    const event = new CustomEvent("gameChanged");
+    window.dispatchEvent(event);
+  }
 
   useEffect(() => {
     (async () => {
@@ -94,6 +96,9 @@ const Sidebar = () => {
 
       setGames(newGames);
       console.debug("[debug] Loaded games", newGames);
+
+      // Get the active provider
+      setActiveGameId(await invoke<string | undefined>("get_active_game"));
     })();
   }, []);
 
@@ -116,7 +121,7 @@ const Sidebar = () => {
       </div>
 
       <div className="border-border/50 border-b p-3">
-        <Select onValueChange={handleGameChange}>
+        <Select value={activeGameId ?? ""} onValueChange={handleGameChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a game" />
           </SelectTrigger>

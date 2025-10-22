@@ -7,22 +7,70 @@ import { useEffect, useState } from "react";
 import Input from "@/components/input";
 import ModOverlay from "@/components/modOverlay";
 
-type ModType = {
-  id: number;
+interface ModType {
+  id: string;
   name: string;
   description: string;
   short_description: string;
   thumbnail_image: string;
   user_avatar: string;
   user_name: string;
-  downloads: number;
+  downloads: string;
   views: number;
-};
+}
+
+interface ExtendedMod extends ModType {
+  // Add extra fields here
+  header_image: string;
+  caoursel_images: string[];
+  installed: boolean;
+  version?: string;
+}
 
 const Discover = () => {
   // We'd get this value from the ModProvider (capablities field)
   const [mods, setMods] = useState<ModType[]>([]);
+  const [activeMod, setActiveMod] = useState<ModOverlay.Props | undefined>();
   const _categories = ["Filter"];
+
+  async function getFurtherInfo(id: string) {
+    const base = mods.find((mod) => mod.id === id);
+    if (!base) {
+      alert("Mod context mismatch");
+      return;
+    }
+    const info = await invoke<Partial<ExtendedMod>>("get_extended_info", {
+      id,
+    }).catch((e) => {
+      console.error("Failed ", e);
+    });
+    if (!info) return;
+
+    const merged: ExtendedMod = {
+      ...info,
+      ...(base as ExtendedMod),
+    };
+
+    // Convert merged into an ModOverlay.Props
+    const props: ModOverlay.Props = {
+      name: merged.name,
+      // Until we support multi-user projects
+      authors: [{ name: merged.user_name, image: merged.user_avatar }],
+      images: merged.caoursel_images,
+      description: merged.description,
+      banner: merged.header_image,
+      version:
+        merged.version && merged.version.trim() !== ""
+          ? merged.version
+          : "Unsupported",
+      downloads: merged.downloads ?? "-1",
+      likes: "Unsupported",
+      open: true,
+    };
+    setActiveMod(props);
+
+    console.debug("result after merge", activeMod, base, info);
+  }
 
   useEffect(() => {
     const handle = () => {
@@ -95,7 +143,17 @@ const Discover = () => {
 
   return (
     <div className="flex h-full flex-col pr-4 pl-4">
-      <ModOverlay {...example_impl} />
+      {activeMod?.open && (
+        <ModOverlay
+          {...activeMod}
+          onOpenChanged={(prev: boolean) => {
+            console.debug("ModOverlay onOpenChanged", prev);
+            if (prev === false) {
+              setActiveMod(undefined);
+            }
+          }}
+        />
+      )}
       <header className="border-border/40 border-b bg-background">
         <div className="space-y-4 pt-6 pb-6">
           <div className="flex items-center justify-between">
@@ -118,9 +176,15 @@ const Discover = () => {
         <div className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-6">
           <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {mods.map((mod) => (
+              // This'll get fixed once we move ModCards into their own component
+              // biome-ignore lint/a11y/noStaticElementInteractions: STFU BRUH
+              // biome-ignore lint/a11y/useKeyWithClickEvents: STFU
               <div
                 key={mod.id}
                 className="group flex min-h-72 cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/30 bg-card/40 transition-all duration-300 hover:border-border/60 hover:shadow-lg"
+                onClick={() => {
+                  getFurtherInfo(mod.id);
+                }}
               >
                 {/* Image Section */}
                 <div className="relative aspect-video overflow-hidden bg-muted/30">
@@ -165,6 +229,7 @@ const Discover = () => {
                     </div>
 
                     <div className="mb-2 flex flex-wrap gap-2">
+                      {/*TODO: Move to its own component*/}
                       {/*{mod.category?.map((category) => (*/}
                       <div
                         // key={category}

@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{string, sync::Arc};
 use log::info;
 use reqwest::header::USER_AGENT;
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ impl ModWorkShopProvider {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenericMod {
-    id: u64,
+    id: String,
     name: String,
     description: String,
     short_description: String,
@@ -27,9 +27,26 @@ pub struct GenericMod {
     likes: u64,
     thumbnail_image: String,
 
+    // TODO: Make this authors and use a modAuthors vec
     user_name: String,
     user_avatar: String,
 
+}
+
+pub struct ModDependency {
+    id: String,
+    name: String,
+    icon: String,
+    installed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModExtendedMetadata {
+    pub header_image: String,
+    pub caoursel_images: Vec<String>,
+    pub version: String,
+    pub installed: bool,
+    pub description: String,
 }
 
 #[async_trait::async_trait]
@@ -81,7 +98,7 @@ impl ModProvider for ModWorkShopProvider {
             modInfos.push(
                 GenericMod {
                     name: v["name"].as_str().unwrap_or("error").to_owned(),
-                    id: v["id"].as_u64().unwrap_or(0),
+                    id: v["id"].as_i64().unwrap_or(0).to_string().to_owned(),
                     description: v["desc"].as_str().unwrap_or("error").to_owned(),
                     short_description: v["short_desc"].as_str().unwrap_or("error").to_owned(),
                     downloads: v["downloads"].as_u64().unwrap_or(0),
@@ -99,6 +116,38 @@ impl ModProvider for ModWorkShopProvider {
 
         return modInfos;
 
+    }
+
+    /// This should really be an Option<ModExtendedMetadata> since the service could go down or something
+    async fn get_extended_mod(&self, id: &str) -> ModExtendedMetadata {
+        let target = format!("https://api.modworkshop.net/mods/{}", id);
+        // We should probably move the calling URL logic to DownloadProvider, or rename it to NetworkProvider, but this is fine for now.
+        let client = reqwest::Client::new();
+        let response = client
+            .get(target)
+            .header(USER_AGENT, "VoidModManager/0.1.0 (+https://github.com/NotGhoull/Void-Mod-Manager)")
+            .send().await.expect("Failed to send request"); // <- We error for now until we finish the API
+        // TODO replace error
+        let txt = response.text().await.expect("Failed to read response");
+        let parsed: Value = serde_json::from_str(&txt).expect("Failed to create reader");
+
+        ModExtendedMetadata {
+            header_image: match parsed["banner"]["file"].as_str() {
+                Some(file) if !file.is_empty() => format!("https://storage.modworkshop.net/mods/images/{}", file),
+                _ => "https://modworkshop.net/assets/default-banner.webp".to_owned()
+            },
+            caoursel_images: parsed["images"]
+                .as_array()
+                .unwrap_or(&vec![])
+                .iter()
+                .filter_map(|img| img["file"].as_str())
+                .filter(|file| !file.is_empty())
+                .map(|file| format!("https://storage.modworkshop.net/mods/images/{}", file))
+                .collect(),
+            version: parsed["version"].as_str().unwrap_or_default().to_owned(),
+            installed: false,
+            description: parsed["description"].as_str().unwrap_or_default().to_owned()
+        }
     }
 
     fn register(&self) -> String {

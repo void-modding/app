@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import type * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/styleUtils";
 import { Button } from "./button";
 
@@ -158,16 +158,36 @@ namespace ModOverlay {
     likes: string;
     supportsDonations?: boolean;
     tags?: string[];
+
+    open?: boolean;
+    onOpenChanged?: (open: boolean) => void;
   }
 }
 // TODO: Move other components out of this file (components/primitives/Dialog)
 // TODO: Move categories chip out of here (components/categoryChip)
 // TODO: Add styles to styles.css instead of defining them here
 function ModOverlay(props: ModOverlay.Props) {
-  const [open, setOpen] = useState(true);
+  const { open: openIntent, onOpenChanged, ...rest } = props;
+
+  const [openInternal, setOpenInternal] = useState<boolean>(
+    () => openIntent ?? false,
+  );
+
+  useEffect(() => {
+    if (openIntent === undefined) return;
+    setOpenInternal((prev) => {
+      if (openIntent !== prev) return openIntent;
+      return prev;
+    });
+  }, [openIntent]);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpenInternal(next);
+    onOpenChanged?.(next);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={openInternal} onOpenChange={handleOpenChange}>
       <DialogTrigger>Trigger</DialogTrigger>
       <DialogContent className="flex max-h-[95vh] min-h-[80vh] w-full min-w-[90vw] max-w-screen flex-col overflow-scroll rounded-xl border border-neutral-800 bg-[#0e0e0f] p-0 font-sans text-white">
         {/* Header */}
@@ -239,6 +259,10 @@ function ModOverlay(props: ModOverlay.Props) {
               <p className="mb-1 font-semibold text-base">Dependencies</p>
               {/* Example dependency */}
               <div className="flex flex-col gap-2">
+                {props.dependencies?.length === 0 ||
+                  (props.dependencies?.length === undefined && (
+                    <p>No dependencies!</p>
+                  ))}
                 {props.dependencies?.map((dep) => (
                   <div
                     className="flex items-center gap-3 rounded border border-border/40 bg-neutral-800/70 px-3 py-2"

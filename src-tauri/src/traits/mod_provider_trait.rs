@@ -1,4 +1,4 @@
-use crate::providers::GenericMod;
+use crate::providers::{GenericMod, ModExtendedMetadata};
 
 // Temporary location
 #[derive(Default, Debug)]
@@ -31,6 +31,7 @@ pub trait ModProvider: Send + Sync {
     async fn download_mod(&self, mod_id: String) -> ModDownloadResult;
 
     async fn discover_mods(&self, game_id: String) -> Vec<GenericMod>;
+    async fn get_extended_mod(&self, mod_id: &str) -> ModExtendedMetadata;
 
     // This is where we setup the plugin, here we'd end up returning:
     //  - The capabilities of the provider (ModProviderFeatures)

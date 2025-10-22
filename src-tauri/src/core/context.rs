@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use serde::{Deserialize, Serialize};
 
-use crate::traits::{GameMetadata, GameProvider, ModProvider};
+use crate::{providers::ModExtendedMetadata, traits::{GameMetadata, GameProvider, ModProvider}};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ProviderSource {
@@ -186,6 +186,18 @@ impl Context {
             None => Err(RegistryError::NotFound(id)),
         }
     }
+
+    pub async fn get_extended_info(&self, id: &str) -> Result<ModExtendedMetadata, RegistryError> {
+            let id = normalize_id(&id)?;
+            let provider = self.active_game_required_provider().unwrap();
+            let provider_entry = self
+                .mod_providers
+                .get(&provider)
+                .ok_or(RegistryError::NotFound(provider.clone()))?;
+            let provider = Arc::clone(&provider_entry.provider);
+
+            Ok(provider.get_extended_mod(&id).await)
+        }
 
     #[cfg(debug_assertions)]
     pub fn debug_dump(&self) {
