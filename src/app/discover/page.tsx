@@ -226,25 +226,34 @@ const Discover = () => {
               {mods.map((mod, i) => (
                 <div
                   key={mod.id}
-                  name={mod.name}
-                  thumbnail={mod.thumbnail_image}
-                  username={mod.user_name}
-                  downloads={mod.downloads}
-                  description={mod.description}
-                  categories={[
-                    "Add-on",
-                    "Self-updating",
-                    "BeardLib",
-                    "Overrides",
-                  ]}
-                />
+                  style={{
+                    opacity: 1,
+                    transform: "translateY(0)",
+                    animation: `modFadeIn 400ms ease ${i * 60}ms both`,
+                  }}
+                  className="will-change-transform"
+                >
+                  <ModCard
+                    name={mod.name}
+                    thumbnail={mod.thumbnail_image}
+                    username={mod.user_name}
+                    downloads={mod.downloads}
+                    description={mod.description}
+                    categories={mod.tags ?? []}
+                    onClick={() => getFurtherInfo(mod.id)}
+                  />
+                </div>
               ))}
             </div>
           )}
         </div>
-
         {meta && (
-          <div className="absolute right-0 bottom-6 left-0 opacity-45 transition-all duration-250 ease-in-out hover:pointer-events-auto hover:opacity-100">
+          <div
+            className="absolute right-0 bottom-6 left-0 opacity-45 transition-all duration-250 ease-in-out hover:pointer-events-auto hover:opacity-100"
+            style={{
+              animation: "modFadeIn 500ms ease 500ms both",
+            }}
+          >
             <PaginationBar
               currentPage={meta.pagination.current}
               totalPages={meta.pagination.total_pages}
