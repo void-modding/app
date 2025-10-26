@@ -28,11 +28,18 @@ function handleScrolling(e: React.WheelEvent<HTMLDivElement>) {
 
 function ModCard(props: ModCard.Props) {
   return (
-    <button
-      type="button"
+    // biome-ignore lint/a11y/useSemanticElements: Because filterTag is already a button, making this a button would cause a hydration error
+    <div
       className="group flex min-h-72 cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/30 bg-card/40 text-left transition-all duration-300 hover:border-border/60 hover:shadow-lg"
+      tabIndex={0}
+      role="button"
       onClick={() => {
         props.onClick?.();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          props.onClick?.();
+        }
       }}
     >
       {/* Image Section */}
@@ -89,7 +96,7 @@ function ModCard(props: ModCard.Props) {
           </p>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
