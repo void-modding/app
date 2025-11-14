@@ -1,4 +1,4 @@
-<a id="readme-top"></a>
+# Void Mod Manager
 
 [![License: GPLv3](https://img.shields.io/badge/licence-GPLv3-blue.svg?style=for-the-badge)](/LICENCE.md)
 [![Supported Games](https://img.shields.io/badge/supported_games-yellow.svg?style=for-the-badge)](https://github.com/void-mod-manager/providers)
