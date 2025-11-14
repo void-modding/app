@@ -1,3 +1,5 @@
+<div align="center">
+
 # Void Mod Manager
 
 [![License: GPLv3](https://img.shields.io/badge/licence-GPLv3-blue.svg?style=for-the-badge)](/LICENCE.md)
@@ -6,6 +8,8 @@
 [![GitHub Issues](https://img.shields.io/github/issues/void-mod-manager/app?style=for-the-badge)](https://github.com/void-mod-manager/app/issues)
 [![GitHub Contributors](https://img.shields.io/github/contributors/void-mod-manager/app?style=for-the-badge)](https://github.com/void-mod-manager/app/graphs/contributors)
 [![GitHub Forks](https://img.shields.io/github/forks/void-mod-manager/app?style=for-the-badge)](https://github.com/void-mod-manager/app/forks)
+
+</div>
 
 <!-- TABLE OF CONTENTS -->
 <details>
