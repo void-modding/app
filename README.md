@@ -12,7 +12,7 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#overview">Overview</a>
       <ul>
         <li><a href="#key-features">Key features</a></li>
       </ul>
@@ -33,7 +33,7 @@
   </ol>
 </details>
 
-## About The Project
+## Overview
 
 Void Mod Manager is a fast, lightweight and user-friendly tool for managing game mods. Designed for simplicity and performance, Void helps you install, update, enable and disable mods with ease. Built in Rust, Void leverages the language's safety and speed to deliver a reliable experience for gamers and modders alike.
 
