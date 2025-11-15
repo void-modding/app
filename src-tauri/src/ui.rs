@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use lib_vmm::{registry::RegistryError, runtime::Context as AppContext, traits::{discovery::{DiscoveryQuery, DiscoveryResult, ModExtendedMetadata}, game_provider::GameMetadata, mod_provider::ModDownloadResult}};
-use taurpc::{Router, procedures};
+use taurpc::procedures;
 use crate::{core::{DefaultDownloadService}};
 
 #[procedures(export_to = "../src/generated/types.ts")]

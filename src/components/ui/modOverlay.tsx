@@ -33,7 +33,7 @@ namespace ModOverlay {
     }[];
     banner: string;
     version: string;
-    downloads: string;
+    downloads: number;
     likes: string;
     supportsDonations?: boolean;
     tags?: string[];

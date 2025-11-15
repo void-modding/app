@@ -1,6 +1,5 @@
 "use client";
 
-import { invoke } from "@tauri-apps/api/core";
 import { SearchIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -9,11 +8,13 @@ import ModCard from "@/components/ui/modCard";
 import ModOverlay from "@/components/ui/modOverlay";
 import PaginationBar from "@/components/ui/paginationBar";
 import type {
-  DiscoverFilter,
-  DiscoverResult,
   DiscoveryMeta,
-} from "@/lib/types/discover";
-import type { ExtendedMod, ModTag, ModType } from "@/lib/types/mods";
+  ModExtendedMetadata,
+  ModSummary,
+} from "@/generated/types";
+import { getTauRCP } from "@/lib/taurpc/useTaurpc";
+import type { DiscoverFilter } from "@/lib/types/discover";
+import type { ModTag } from "@/lib/types/mods";
 
 const searchResults = [
   {
@@ -36,9 +37,13 @@ const searchResults = [
   },
 ];
 
+// Combined mod type
+type CombinedMod = ModSummary & ModExtendedMetadata;
+
 const Discover = () => {
-  const [mods, setMods] = useState<ModType[]>([]);
+  const [mods, setMods] = useState<ModSummary[]>([]);
   const [meta, setMeta] = useState<DiscoveryMeta>();
+  // TODO Tags & Filtering
   const [tags, setTag] = useState<ModTag[]>();
   const [filter, setFilter] = useState<DiscoverFilter>();
   const [activeMod, setActiveMod] = useState<ModOverlay.Props | undefined>();
@@ -47,10 +52,9 @@ const Discover = () => {
 
   async function paginateTo(page: number) {
     setIsLoading(true);
+    const rpc = getTauRCP();
     try {
-      const mods = await invoke<DiscoverResult>("get_discovery_mods", {
-        page,
-      });
+      const mods = await rpc.get_discovery_mods(page);
       setMods(mods.mods);
       setMeta(mods.meta);
     } catch (e) {
@@ -62,21 +66,18 @@ const Discover = () => {
   }
 
   async function getFurtherInfo(id: string) {
+    const rpc = getTauRCP();
     const base = mods.find((mod) => mod.id === id);
     if (!base) {
       alert("Mod context mismatch");
       return;
     }
-    const info = await invoke<Partial<ExtendedMod>>("get_extended_info", {
-      id,
-    }).catch((e) => {
-      console.error("Failed ", e);
-    });
+    const info = await rpc.get_extended_info(id);
     if (!info) return;
 
-    const merged: ExtendedMod = {
+    const merged: CombinedMod = {
       ...info,
-      ...(base as ExtendedMod),
+      ...(base as ModSummary),
     };
 
     // Convert merged into an ModOverlay.Props
@@ -91,7 +92,7 @@ const Discover = () => {
         merged.version && merged.version.trim() !== ""
           ? merged.version
           : "Unsupported",
-      downloads: merged.downloads ?? "-1",
+      downloads: merged.downloads ?? 0,
       likes: "Unsupported",
       tags: merged.tags ?? [],
       open: true,
@@ -102,6 +103,7 @@ const Discover = () => {
   }
 
   useEffect(() => {
+    // TODO: handle these in a better way
     const handle = () => {
       console.debug("[debug] Game changed, event received");
     };
@@ -115,8 +117,9 @@ const Discover = () => {
 
   useEffect(() => {
     (async () => {
+      const rpc = await getTauRCP();
       try {
-        const res = await invoke<DiscoverResult>("get_discovery_mods");
+        const res = await rpc.get_discovery_mods(1);
         setMods(res.mods);
         setMeta(res.meta);
         console.debug("Got meta!", res.meta);
@@ -172,7 +175,7 @@ const Discover = () => {
               <div className="pointer-events-auto rounded-md border border-border/40 bg-popover p-2 shadow-lg">
                 <div className="flex flex-col gap-2">
                   {/* Animate each item in with staggered fade-in */}
-                  {searchResults.map((mod, i) => (
+                  {searchResults.map((mod) => (
                     <div
                       key={mod.name}
                       className="flex cursor-pointer items-center gap-2 rounded p-2 transition hover:bg-muted"
@@ -252,7 +255,7 @@ const Discover = () => {
                     thumbnail={mod.thumbnail_image}
                     username={mod.user_name}
                     avatar={mod.user_avatar}
-                    downloads={mod.downloads}
+                    downloads={mod.downloads.toString()}
                     description={mod.description}
                     categories={mod.tags ?? []}
                     onClick={() => getFurtherInfo(mod.id)}
@@ -271,7 +274,7 @@ const Discover = () => {
           >
             <PaginationBar
               currentPage={meta.pagination.current}
-              totalPages={meta.pagination.total_pages}
+              totalPages={meta.pagination.total_pages ?? 1}
               onPaginate={paginateTo}
             />
           </div>

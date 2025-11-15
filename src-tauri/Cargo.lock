@@ -18,7 +18,7 @@ dependencies = [
  "fern",
  "futures-util",
  "humantime",
- "lib-vmm",
+ "lib-vmm 0.1.0 (git+https://github.com/void-mod-manager/lib-vmm?branch=feat/specta-types)",
  "log",
  "nvml-wrapper",
  "once_cell",
@@ -38,6 +38,7 @@ dependencies = [
  "tracing",
  "tracing-log",
  "tracing-subscriber",
+ "vmm-providers",
  "zip",
 ]
 
@@ -2056,6 +2057,20 @@ dependencies = [
  "serde",
  "serde_json",
  "specta",
+ "thiserror 2.0.17",
+ "tokio",
+ "zip",
+]
+
+[[package]]
+name = "lib-vmm"
+version = "0.1.0"
+source = "git+https://github.com/void-mod-manager/lib-vmm?branch=main#1fac1e2c9d43d1b2027342b8d385f0c011535a8b"
+dependencies = [
+ "async-trait",
+ "reqwest",
+ "serde",
+ "serde_json",
  "thiserror 2.0.17",
  "tokio",
  "zip",
@@ -5203,6 +5218,21 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "vmm-providers"
+version = "0.1.0"
+source = "git+https://github.com/void-mod-manager/providers?branch=main#0023391d1738352de460e1a44f475e881375fee9"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "lib-vmm 0.1.0 (git+https://github.com/void-mod-manager/lib-vmm?branch=main)",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "steamlocate",
+]
 
 [[package]]
 name = "vswhom"

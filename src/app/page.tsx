@@ -1,12 +1,13 @@
 "use client";
 
-import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useState } from "react";
+import { getTauRCP } from "@/lib/taurpc/useTaurpc";
 
 const Home = () => {
   const [greeted, setGreeted] = useState<string | null>(null);
   const greet = useCallback((): void => {
-    invoke<string>("greet").then(setGreeted).catch(console.error);
+    const rpc = getTauRCP();
+    rpc.greet().then(setGreeted).catch(console.error);
   }, []);
 
   return (

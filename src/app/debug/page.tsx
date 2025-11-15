@@ -1,8 +1,8 @@
 "use client";
 
-import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/primitives/button";
+import { getTauRCP } from "@/lib/taurpc/useTaurpc";
 import { useViewManager } from "@/lib/viewSystem/useViewManager";
 import { View } from "@/lib/viewSystem/View";
 
@@ -67,7 +67,10 @@ export default function DebugPage() {
       <div id="debug_test_download_service" className="mb-4">
         <Button
           onClick={() => {
-            invoke("download_mod", { id: "1" });
+            (async () => {
+              const rpc = getTauRCP();
+              await rpc.download_mod("1");
+            })();
           }}
         >
           Download mod

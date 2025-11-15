@@ -1,6 +1,5 @@
 "use client";
 
-import { invoke } from "@tauri-apps/api/core";
 import {
   BugIcon,
   DownloadIcon,
@@ -8,13 +7,14 @@ import {
   type LucideIcon,
   SearchIcon,
   SettingsIcon,
-  TriangleAlertIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createTauRPCProxy, type GameMetadata } from "@/generated/types";
 import { cn } from "@/lib/styleUtils";
+import { getTauRCP } from "@/lib/taurpc/useTaurpc";
 import {
   Select,
   SelectContent,
@@ -67,16 +67,6 @@ const navItems: NavItem[] = [
   },
 ];
 
-type GameMetadata = {
-  id: string;
-  display_name: string;
-  short_name: string;
-  icon: {
-    Path: string;
-  };
-  provider_source: "core" | "plugin";
-};
-
 const Sidebar = () => {
   const pathname = usePathname() ?? "/";
   const [games, setGames] = useState<GameMetadata[]>();
@@ -84,7 +74,8 @@ const Sidebar = () => {
 
   async function handleGameChange(newGame: string) {
     console.debug("Game changed!");
-    await invoke("set_active_game", { id: newGame });
+    const rpc = getTauRCP();
+    await rpc.set_active_game(newGame);
     setActiveGameId(newGame);
     const event = new CustomEvent("gameChanged");
     window.dispatchEvent(event);
@@ -92,15 +83,14 @@ const Sidebar = () => {
 
   useEffect(() => {
     (async () => {
+      const rpc = getTauRCP();
       try {
-        const gameIds = await invoke<string[]>("list_games");
+        const gameIds = await rpc.list_games();
         console.debug("[debug] Found loaded providers", gameIds);
 
         const newGames: GameMetadata[] = [];
         for (const id of gameIds) {
-          const data = await invoke<GameMetadata>("get_metadata_for", {
-            id: id,
-          });
+          const data = await rpc.get_metadata_for(id);
           newGames.push(data);
         }
 
@@ -108,7 +98,7 @@ const Sidebar = () => {
         console.debug("[debug] Loaded games", newGames);
 
         // Get the active provider
-        setActiveGameId(await invoke<string | undefined>("get_active_game"));
+        setActiveGameId((await rpc.get_active_game()) ?? undefined);
       } catch (e) {
         alert("Failed to load game providers");
         console.error("Failed to load game providers ", e);
