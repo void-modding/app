@@ -5098,7 +5098,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vmm-providers"
 version = "0.1.0"
-source = "git+https://github.com/void-mod-manager/providers?branch=main#563a741a973fc7ab45a292ce8f8275416ebe98a0"
+source = "git+https://github.com/void-mod-manager/providers?branch=main#0023391d1738352de460e1a44f475e881375fee9"
 dependencies = [
  "anyhow",
  "async-trait",
