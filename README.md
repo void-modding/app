@@ -63,7 +63,7 @@ WIP
 
 WIP \
 Either use one of the pre-compiled apps for your Operating system or compile from source
-> Or, you can install the latest version with the AUR - https://aur.archlinux.org/packages/void-mod-manager-git
+> Or, you can install the latest version with the AUR - <https://aur.archlinux.org/packages/void-mod-manager-git>
 
 ## Roadmap
 
