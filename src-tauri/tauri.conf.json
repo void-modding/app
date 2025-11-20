@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "void-mod-manager",
+  "productName": "Void Mod Manager",
   "version": "0.1.0",
   "identifier": "org.void-mod-manager.app",
   "build": {
@@ -32,6 +32,8 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "category": "Utility",
+    "shortDescription": "A mod manager made for penguins"
   }
 }
