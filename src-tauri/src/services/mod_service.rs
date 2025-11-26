@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use lib_vmm::{registry::RegistryError, runtime::Context as AppContext, traits::{discovery::{DiscoveryQuery, DiscoveryResult, ModExtendedMetadata}, game_provider::GameMetadata, mod_provider::ModDownloadResult}};
 use taurpc::procedures;
-use crate::{core::{DefaultDownloadService}};
 
 #[procedures(export_to = "../src/generated/types.ts")]
 pub trait ModService {
@@ -24,8 +23,8 @@ pub trait ModService {
 }
 
 #[derive(Clone)]
-struct ModServiceImpl {
-    ctx: Arc<AppContext>
+pub struct ModServiceImpl {
+    pub ctx: Arc<AppContext>
 }
 
 #[taurpc::resolvers]
@@ -123,18 +122,4 @@ impl ModService for ModServiceImpl {
     }
 
 
-}
-
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run(ctx: Arc<AppContext>, download_service: Arc<DefaultDownloadService>) {
-  tauri::Builder::default()
-    .setup(move |app| {
-        download_service.set_handle(app.handle().clone());
-        Ok(())
-    })
-    .manage(ctx.clone())
-    // .invoke_handler(tauri::generate_handler![get_metadata_for, get_discovery_mods, set_active_game, get_extended_info])
-    .invoke_handler(taurpc::create_ipc_handler(ModServiceImpl{ ctx: ctx.clone() }.into_handler()))
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
 }
