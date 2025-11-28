@@ -12,7 +12,11 @@ use crate::services::{ModService, ModServiceImpl, CapabilityService, CapabilityS
 pub fn run(ctx: Arc<AppContext>, download_service: Arc<DefaultDownloadService>) {
     let router = Router::new()
         .merge(ModServiceImpl{ctx: ctx.clone()}.into_handler())
-        .merge(CapabilityServiceImpl{ctx: ctx.clone()}.into_handler());
+        .merge(CapabilityServiceImpl{ctx: ctx.clone()}.into_handler())
+        .export_config(
+            specta_typescript::Typescript::default()
+                .bigint(specta_typescript::BigIntExportBehavior::Number)
+        );
 
   tauri::Builder::default()
     .setup(move |app| {

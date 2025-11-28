@@ -1845,7 +1845,7 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 [[package]]
 name = "lib-vmm"
 version = "0.2.0"
-source = "git+https://github.com/void-modding/lib-vmm?branch=feat/capabilities#f967322151b1dde1c66ab2fa7daa99cac429dedb"
+source = "git+https://github.com/void-modding/lib-vmm?branch=feat/capabilities#8f7e41c53c470f902d40ef60e9ec8ace63d98581"
 dependencies = [
  "async-trait",
  "reqwest",

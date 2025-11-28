@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/primitives/button";
-import type { FormSchema } from "@/generated/types";
+import ApikeyModal from "@/components/ui/apiKeyModal/modal";
+import type { ApiSubmitResponse, FormSchema } from "@/generated/types";
 import { getTauRPC } from "@/lib/taurpc/useTaurpc";
 import { useViewManager } from "@/lib/viewSystem/useViewManager";
 import { View } from "@/lib/viewSystem/View";
@@ -97,6 +98,25 @@ export default function DebugPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
+      {formResult && (
+        <ApikeyModal
+          schema={formResult}
+          open
+          onSubmit={async (vals) => {
+            console.debug("Got return", vals);
+            const rpc = getTauRPC();
+
+            // Convert vals (Record<string, string>) to ApiSubmitResponse[]
+            // Assuming vals is an object where keys are ids and values are the values
+            const x: ApiSubmitResponse[] = Object.entries(vals).map(
+              ([id, value]) => ({ id, value }),
+            );
+            console.log("Submitting response", x);
+            await rpc.capabilities.api_key_submit_response(x);
+          }}
+        />
+      )}
+
       <header className="mb-6">
         <h1 className="font-semibold text-2xl tracking-tight">Debug Page</h1>
         <p className="text-muted-foreground text-sm">Why are you even here?</p>
