@@ -12,7 +12,7 @@ pub trait CapabilityService {
     async fn list_capabilities() -> Vec<String>;
     async fn requires_api_key() -> bool;
     async fn api_key_should_show() -> Option<FormSchema>;
-    async fn api_key_submit_response(values: Vec<ApiSubmitResponse>) -> Result<KeyAction, ApiKeyValidationError>;
+    async fn api_key_submit_response(values: Vec<ApiSubmitResponse>) -> Result<bool, ApiKeyValidationError>;
 }
 
 #[derive(Clone)]
@@ -57,11 +57,10 @@ impl CapabilityService for CapabilityServiceImpl {
         }
         None
     }
-
     async fn api_key_submit_response(
         self,
         values: Vec<ApiSubmitResponse>,
-    ) -> Result<KeyAction, ApiKeyValidationError> {
+    ) -> Result<bool, ApiKeyValidationError> {
         debug!(?values, "Submitting API key validation responses");
 
         let provider = self.get_mod_provider();
@@ -76,14 +75,14 @@ impl CapabilityService for CapabilityServiceImpl {
                     Ok(action) => {
                         debug!(?action, "API key validated; returning action");
 
-                       if action == KeyAction::Store {
-                           match set_provider_secret(provider.id(), &values[0].value) {
-                               Ok(_) => { info!("Successfully stored key!")},
-                               Err(err) => { warn!(error = ?err, "Failed to store key");}
-                           }
-                       }
+                        if action == KeyAction::Store {
+                            match set_provider_secret(provider.id(), &values[0].value) {
+                                Ok(_) => { info!("Successfully stored key!")},
+                                Err(err) => { warn!(error = ?err, "Failed to store key");} // <- This is very unlikely to ever happen
+                            }
+                        }
 
-                        return Ok(action);
+                        return Ok(true);
                     }
                     Err(err) => {
                         // Propagate to the frontend

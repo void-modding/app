@@ -4,11 +4,13 @@ import { SearchIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Input from "@/components/primitives/input";
+import ApikeyModal from "@/components/ui/apiKeyModal/modal";
 import ModCard from "@/components/ui/modCard";
 import ModOverlay from "@/components/ui/modOverlay";
 import PaginationBar from "@/components/ui/paginationBar";
 import type {
   DiscoveryMeta,
+  FormSchema,
   ModExtendedMetadata,
   ModSummary,
 } from "@/generated/types";
@@ -50,62 +52,111 @@ const Discover = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  async function paginateTo(page: number) {
+  // Capability check and API key modal state
+  const [needsApiKey, setNeedsApiKey] = useState<
+    FormSchema | "LOADED_NOT_NEEDED" | "PENDING" | null
+  >("PENDING");
+
+  // Helper to fetch discovery mods for a given page
+  const fetchDiscoveryMods = async (page: number = 1) => {
     setIsLoading(true);
     const rpc = getTauRPC();
     try {
-      const mods = await rpc.get_discovery_mods(page);
-      setMods(mods.mods);
-      setMeta(mods.meta);
+      const res = await rpc.get_discovery_mods(page);
+      setMods(res.mods);
+      setMeta(res.meta);
+      console.debug("Fetched discovery mods:", res.mods);
+      console.debug("Fetched meta:", res.meta);
     } catch (e) {
-      alert("Failed to paginate discovery mods");
-      console.error("Pagination failed", e);
+      alert("Failed to load discovery mods.");
+      console.error("Failed to load mods", e);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
-  async function getFurtherInfo(id: string) {
+  // Check if API key is needed on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const rpc = getTauRPC();
+      try {
+        if (await rpc.capabilities.requires_api_key()) {
+          const schema = await rpc.capabilities.api_key_should_show();
+          if (!cancelled) setNeedsApiKey(schema);
+        } else {
+          if (!cancelled) setNeedsApiKey("LOADED_NOT_NEEDED");
+        }
+      } catch (e) {
+        console.error("Failed to check API key requirement", e);
+        if (!cancelled) setNeedsApiKey("LOADED_NOT_NEEDED");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Fetch mods when API key is not needed or after modal closes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Not needed
+  useEffect(() => {
+    if (needsApiKey === "LOADED_NOT_NEEDED") {
+      fetchDiscoveryMods(1);
+    }
+  }, [needsApiKey]);
+
+  // Pagination handler
+  const paginateTo = async (page: number) => {
+    await fetchDiscoveryMods(page);
+  };
+
+  // Fetch and merge extended mod info for overlay
+  const getFurtherInfo = async (id: string) => {
     const rpc = getTauRPC();
     const base = mods.find((mod) => mod.id === id);
     if (!base) {
       alert("Mod context mismatch");
       return;
     }
-    const info = await rpc.get_extended_info(id);
-    if (!info) return;
+    try {
+      const info = await rpc.get_extended_info(id);
+      if (!info) return;
 
-    const merged: CombinedMod = {
-      ...info,
-      ...(base as ModSummary),
-    };
+      const merged: CombinedMod = {
+        ...base,
+        ...info,
+      };
 
-    // Convert merged into an ModOverlay.Props
-    const props: ModOverlay.Props = {
-      name: merged.name,
-      // Until we support multi-user projects
-      authors: [{ name: merged.user_name, image: merged.user_avatar }],
-      images: merged.carousel_images,
-      description: merged.description,
-      banner: merged.header_image,
-      version:
-        merged.version && merged.version.trim() !== ""
-          ? merged.version
-          : "Unsupported",
-      downloads: merged.downloads ?? 0,
-      likes: "Unsupported",
-      tags: merged.tags ?? [],
-      open: true,
-    };
-    setActiveMod(props);
+      // Convert merged into ModOverlay.Props
+      const props: ModOverlay.Props = {
+        name: merged.name,
+        authors: [{ name: merged.user_name, image: merged.user_avatar }],
+        images: merged.carousel_images,
+        description: merged.description,
+        banner: merged.header_image,
+        version:
+          merged.version && merged.version.trim() !== ""
+            ? merged.version
+            : "Unsupported",
+        downloads: merged.downloads ?? 0,
+        likes: "Unsupported",
+        tags: merged.tags ?? [],
+        open: true,
+      };
+      setActiveMod(props);
 
-    console.debug("result after merge", activeMod, base, info);
-  }
+      console.debug("Merged mod info for overlay", props, base, info);
+    } catch (e) {
+      alert("Failed to fetch mod details.");
+      console.error("Failed to fetch extended mod info", e);
+    }
+  };
 
+  // Listen for gameChanged event for future extensibility
   useEffect(() => {
-    // TODO: handle these in a better way
     const handle = () => {
       console.debug("[debug] Game changed, event received");
+      // Potentially refresh mods or reset state here in the future
     };
 
     window.addEventListener("gameChanged", handle);
@@ -115,26 +166,20 @@ const Discover = () => {
     };
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      const rpc = getTauRPC();
-      try {
-        const res = await rpc.get_discovery_mods(1);
-        setMods(res.mods);
-        setMeta(res.meta);
-        console.debug("Got meta!", res.meta);
-        console.debug("Got mods", res);
-      } catch (e) {
-        alert("Mod loading failed.");
-        console.error("Failed to load mods ", e);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, []);
-
   return (
     <div className="flex h-full flex-col pr-4 pl-4">
+      {needsApiKey !== "LOADED_NOT_NEEDED" &&
+        needsApiKey !== "PENDING" &&
+        needsApiKey !== null && (
+          <ApikeyModal
+            open
+            schema={needsApiKey as FormSchema}
+            onComplete={() => {
+              setNeedsApiKey("LOADED_NOT_NEEDED");
+            }}
+          />
+        )}
+
       {activeMod?.open && (
         <ModOverlay
           {...activeMod}

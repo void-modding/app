@@ -10,13 +10,14 @@ import {
   DialogTitle,
 } from "@/components/primitives/dialog";
 import Input from "@/components/primitives/input";
-import type { Field, FormSchema } from "@/generated/types";
+import type { ApiSubmitResponse, Field, FormSchema } from "@/generated/types";
+import { getTauRPC } from "@/lib/taurpc/useTaurpc";
 
 type ApikeyModalProps = {
   schema: FormSchema;
   open?: boolean;
   onOpenChange?: (val: boolean) => void;
-  onSubmit?: (values: Record<string, string>) => Promise<void> | void;
+  onComplete?: () => Promise<void> | void;
   onCancel?: () => void;
   initalValues?: Record<string, string>;
   submitting?: boolean;
@@ -69,7 +70,7 @@ export default function ApikeyModal({
   schema,
   onCancel,
   onOpenChange,
-  onSubmit,
+  onComplete,
   submitting = false,
   open: openIntent,
   initalValues,
@@ -132,7 +133,7 @@ export default function ApikeyModal({
   const handleSubmit = async () => {
     if (!isFormValid || submitting) return;
     try {
-      await onSubmit?.(formState.values);
+      await onSubmit();
     } catch (e) {
       console.error("Submit failed", e);
     }
@@ -144,6 +145,41 @@ export default function ApikeyModal({
       touched: { ...prev.touched, [id]: true },
     }));
   };
+
+  async function onSubmit() {
+    const vals = formState.values;
+
+    console.debug("Got return", vals);
+    const rpc = getTauRPC();
+
+    // Convert vals (Record<string, string>) to ApiSubmitResponse[]
+    // Assuming vals is an object where keys are ids and values are the values
+    const x: ApiSubmitResponse[] = Object.entries(vals).map(([id, value]) => ({
+      id,
+      value,
+    }));
+    console.log("Submitting response", x);
+    let res: boolean = false;
+    try {
+      res = await rpc.capabilities.api_key_submit_response(x);
+    } catch (e) {
+      const message =
+        e && typeof e === "object" && "message" in e
+          ? (e as { message?: string }).message
+          : String(e);
+      toast.error(`Submit failed:  ${message}`);
+    }
+
+    if (res) {
+      // Now we can fire an onSuccess()
+      toast.success("API key accepted");
+      _setOpen(false);
+      onComplete?.();
+    } else {
+      // Or an onError()
+      toast.error("API Key invalid.");
+    }
+  }
 
   return (
     <Dialog open={_open} onOpenChange={handleOpenChange}>

@@ -22,19 +22,6 @@ export type GameIcon = { Path: string }
 
 export type GameMetadata = { id: string; display_name: string; short_name: string; icon: GameIcon; provider_source: ProviderSource }
 
-/**
- * What the runtime should do with a successfully provided key.
- */
-export type KeyAction = 
-/**
- * The runtime will store the key for the future.
- */
-"Store" | 
-/**
- * The runtime will NOT store the key
- */
-"DontStore"
-
 export type ModExtendedMetadata = { header_image: string; carousel_images: string[]; version: string; installed: boolean; description: string }
 
 export type ModSummary = { id: string; name: string; description: string; short_description: string; downloads: number; views: number; likes: number; thumbnail_image: string; tags: string[]; user_name: string; user_avatar: string }
@@ -60,7 +47,7 @@ greet: () => Promise<string>,
 list_games: () => Promise<string[]>, 
 set_active_game: (id: string) => Promise<null>},
 "capabilities": {api_key_should_show: () => Promise<FormSchema | null>, 
-api_key_submit_response: (values: ApiSubmitResponse[]) => Promise<KeyAction>, 
+api_key_submit_response: (values: ApiSubmitResponse[]) => Promise<boolean>, 
 list_capabilities: () => Promise<string[]>, 
 requires_api_key: () => Promise<boolean>} };
 

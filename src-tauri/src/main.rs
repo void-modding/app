@@ -170,7 +170,8 @@ impl RequiresApiKey for TestModProvider {
 
     fn needs_prompt(&self, existing_key: Option<&str>) -> bool {
         if existing_key.is_some() {
-            info!("A key was successfully passed to the provider {:#?}", existing_key)
+            info!("A key was successfully passed to the provider {:#?}", existing_key);
+            return false;
         } else {
             info!("No key passed to provider")
         }
