@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use lib_vmm::{capabilities::{self, api_key_capability::{ApiKeyCapability, ApiKeyValidationError, ApiSubmitResponse, KeyAction, RequiresApiKey}, form::FormSchema, ids::{self, CapabilityId}}, runtime::Context, traits::{mod_provider::ModProvider, provider::Provider}};
 use taurpc::procedures;
-use tracing::{debug, warn, instrument};
+use tracing::{debug, info, instrument, warn};
+
+use crate::core::{load_provider_secret, set_provider_secret};
 
 
 #[procedures(path = "capabilities")]
@@ -45,7 +47,9 @@ impl CapabilityService for CapabilityServiceImpl {
 
         for cap in provider.capabilities() {
             if let Some(api) = cap.as_requires_api_key() {
-                let show = api.needs_prompt(None);
+                let stored = load_provider_secret(provider.id()).ok();
+
+                let show = api.needs_prompt(stored.as_deref());
                 if show {
                     return Some(api.render());
                 }
@@ -71,6 +75,14 @@ impl CapabilityService for CapabilityServiceImpl {
                 match api.on_provided(&values) {
                     Ok(action) => {
                         debug!(?action, "API key validated; returning action");
+
+                       if action == KeyAction::Store {
+                           match set_provider_secret(provider.id(), &values[0].value) {
+                               Ok(_) => { info!("Successfully stored key!")},
+                               Err(err) => { warn!(error = ?err, "Failed to store key");}
+                           }
+                       }
+
                         return Ok(action);
                     }
                     Err(err) => {

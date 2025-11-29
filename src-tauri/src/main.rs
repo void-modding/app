@@ -5,17 +5,21 @@ mod frontend;
 mod services;
 
 use async_trait::async_trait;
+use keyring::Entry;
 use lib_vmm::{api::DefaultProviderApi, capabilities::{api_key_capability::{ApiKeyValidationError, ApiSubmitResponse, KeyAction, RequiresApiKey}, base::CapabilityRef, builder::CapabilityBuilder, form::{Field, FormSchema}}, runtime::ContextBuilder, traits::{discovery::{DiscoveryError, DiscoveryQuery, DiscoveryResult, ModExtendedMetadata}, game_provider::{GameMetadata, GameProvider}, mod_provider::{ModDownloadResult, ModProvider}, provider::Provider}};
 use tracing::{info, trace, warn};
 use tracing_log::LogTracer;
 use std::{env, path::Path, sync::{Arc, OnceLock}};
 
-use crate::core::{DefaultDownloadService};
+use crate::core::{DefaultDownloadService, load_provider_secret};
 
 #[tokio::main]
 async fn main() {
     LogTracer::init().expect("Failed to init logging");
     tracing_subscriber::fmt().with_max_level(tracing::Level::DEBUG).try_init().ok();
+
+    info!("secret: {:?}", load_provider_secret("core:nexusmods"));
+
     #[cfg(target_os = "linux")]
     {
         info!("Running under the penguin");
@@ -161,10 +165,16 @@ impl ModProvider for TestModProvider {
 // Add APIKey implementation test
 impl RequiresApiKey for TestModProvider {
     fn on_provided(&self, values: &Vec<ApiSubmitResponse>) -> Result<KeyAction, ApiKeyValidationError> {
-        Ok(KeyAction::DontStore)
+        Ok(KeyAction::Store)
     }
 
     fn needs_prompt(&self, existing_key: Option<&str>) -> bool {
+        if existing_key.is_some() {
+            info!("A key was successfully passed to the provider {:#?}", existing_key)
+        } else {
+            info!("No key passed to provider")
+        }
+
         true
     }
 

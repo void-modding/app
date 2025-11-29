@@ -38,5 +38,9 @@ taurpc = "0.5.2"
 specta = {version = "=2.0.0-rc.22", features = ["derive"] }
 specta-typescript = "0.0.9"
 
+# Secrets
+keyring = { version = "3.6.3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+
+
 [target.'cfg(target_os = "linux")'.dependencies]
 nvml-wrapper = "0.11.0"
