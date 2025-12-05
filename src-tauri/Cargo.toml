@@ -15,7 +15,7 @@ tauri-build = { version = "2.5.2", features = [] }
 
 [dependencies]
 # VMM specific
-lib-vmm = { git = "https://github.com/void-modding/lib-vmm", branch = "main", features = ["specta"] }
+lib-vmm = { version = "0.2.0", features = [ "specta" ] }
 vmm-providers = { git = "https://github.com/void-modding/providers", branch = "main" }
 
 serde = { version = "1.0", features = ["derive"] }
@@ -37,6 +37,10 @@ tracing-log = "0.2.0"
 taurpc = "0.5.2"
 specta = {version = "=2.0.0-rc.22", features = ["derive"] }
 specta-typescript = "0.0.9"
+
+# Secrets
+keyring = { version = "3.6.3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+
 
 [target.'cfg(target_os = "linux")'.dependencies]
 nvml-wrapper = "0.11.0"

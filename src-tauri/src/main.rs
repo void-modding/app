@@ -1,19 +1,21 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod core;
 mod binary;
-mod ui;
+mod frontend;
+mod services;
 
 use lib_vmm::{api::DefaultProviderApi, runtime::ContextBuilder};
 use tracing::{info, trace, warn};
 use tracing_log::LogTracer;
 use std::{env, sync::Arc};
 
-use crate::core::{DefaultDownloadService};
+use crate::core::DefaultDownloadService;
 
 #[tokio::main]
 async fn main() {
     LogTracer::init().expect("Failed to init logging");
     tracing_subscriber::fmt().with_max_level(tracing::Level::DEBUG).try_init().ok();
+
     #[cfg(target_os = "linux")]
     {
         info!("Running under the penguin");
@@ -25,9 +27,9 @@ async fn main() {
             let env_var = env::var("WEBKIT_DISABLE_DMABUF_RENDERER");
             // Check if the var applied
             if env_var.is_ok() {
-                println!("Success!")
+                info!("Success!")
             } else {
-                warn!("Workaround failed, goodluck")
+                warn!("Failed to apply workaround")
             }
         }
     }
@@ -43,7 +45,7 @@ async fn main() {
     api.set_context(Arc::clone(&ctx));
     #[cfg(debug_assertions)]
     ctx.debug_dump();
-    ui::run(ctx, download_service);
+    frontend::run(ctx, download_service);
 }
 
 #[cfg(target_os = "linux")]

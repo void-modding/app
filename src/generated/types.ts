@@ -4,9 +4,19 @@ import { createTauRPCProxy as createProxy, type InferCommandOutput } from 'taurp
 type TAURI_CHANNEL<T> = (response: T) => void
 
 
+export type ApiKeyValidationError = "Empty" | { TooShort: { min_len: number } } | "Invalid" | "ProviderError" | { Other: string }
+
+export type ApiSubmitResponse = { id: string; value: string }
+
 export type DiscoveryMeta = { provider_id: string; game_id: string; pagination: PaginationMeta; applied_tags: string[]; available_tags: Tag[] | null }
 
 export type DiscoveryResult = { meta: DiscoveryMeta; mods: ModSummary[] }
+
+export type Field = { id: string; label: string; field_type: FieldType; placeholder: string | null; regex: string | null; help: string | null }
+
+export type FieldType = "Text" | "Password" | { Select: string[] } | "MarkdownInfo"
+
+export type FormSchema = { title: string; description: string | null; fields: Field[] }
 
 export type GameIcon = { Path: string }
 
@@ -27,7 +37,7 @@ export type RegistryError = { InvalidId: string } | { ProviderAlreadyExists: str
 
 export type Tag = { id: string; name: string }
 
-const ARGS_MAP = { '':'{"download_mod":["id"],"get_active_game":[],"get_discovery_mods":["page"],"get_extended_info":["id"],"get_metadata_for":["id"],"greet":[],"list_games":[],"set_active_game":["id"]}' }
+const ARGS_MAP = { '':'{"download_mod":["id"],"get_active_game":[],"get_discovery_mods":["page"],"get_extended_info":["id"],"get_metadata_for":["id"],"greet":[],"list_games":[],"set_active_game":["id"]}', 'capabilities':'{"api_key_should_show":[],"api_key_submit_response":["values"],"list_capabilities":[],"requires_api_key":[]}' }
 export type Router = { "": {download_mod: (id: string) => Promise<null>, 
 get_active_game: () => Promise<string | null>, 
 get_discovery_mods: (page: number | null) => Promise<DiscoveryResult>, 
@@ -35,7 +45,11 @@ get_extended_info: (id: string) => Promise<ModExtendedMetadata>,
 get_metadata_for: (id: string) => Promise<GameMetadata>, 
 greet: () => Promise<string>, 
 list_games: () => Promise<string[]>, 
-set_active_game: (id: string) => Promise<null>} };
+set_active_game: (id: string) => Promise<null>},
+"capabilities": {api_key_should_show: () => Promise<FormSchema | null>, 
+api_key_submit_response: (values: ApiSubmitResponse[]) => Promise<boolean>, 
+list_capabilities: () => Promise<string[]>, 
+requires_api_key: () => Promise<boolean>} };
 
 
 export const createTauRPCProxy = () => createProxy<Router>(ARGS_MAP)
