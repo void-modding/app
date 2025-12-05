@@ -59,7 +59,7 @@ impl ModService for ModServiceImpl {
     }
 
     async fn get_extended_info(self, id: String) -> Result<ModExtendedMetadata, RegistryError> {
-        Ok(self.ctx.get_extended_info(&id).await?)
+        self.ctx.get_extended_info(&id).await
     }
 
     async fn get_metadata_for(self, id: String) -> Result<GameMetadata, RegistryError> {

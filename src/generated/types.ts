@@ -12,7 +12,7 @@ export type DiscoveryMeta = { provider_id: string; game_id: string; pagination: 
 
 export type DiscoveryResult = { meta: DiscoveryMeta; mods: ModSummary[] }
 
-export type Field = { id: string; label: string; field_type: FieldType | null; placeholder: string | null; regex: string | null; help: string | null }
+export type Field = { id: string; label: string; field_type: FieldType; placeholder: string | null; regex: string | null; help: string | null }
 
 export type FieldType = "Text" | "Password" | { Select: string[] } | "MarkdownInfo"
 
