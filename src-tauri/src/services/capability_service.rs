@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use lib_vmm::{capabilities::{self, api_key_capability::{ApiKeyValidationError, ApiSubmitResponse, KeyAction}, form::FormSchema}, runtime::Context, traits::{mod_provider::ModProvider, provider::Provider}};
+use lib_vmm::{capabilities::{self, api_key_capability::{ApiKeyValidationError, ApiSubmitResponse, KeyAction}, form::FormSchema}, runtime::Context, traits::{mod_provider::ModProvider}};
 use taurpc::procedures;
 use tracing::{error, info, warn};
 
@@ -43,17 +43,27 @@ impl CapabilityServiceImpl {
 #[taurpc::resolvers]
 impl CapabilityService for CapabilityServiceImpl {
     async fn list_capabilities(self) -> Vec<String> {
-        let provider = self.get_mod_provider();
-        provider.unwrap().capabilities().iter().map(|cap| cap.id().to_string()).collect()
+        match self.get_mod_provider() {
+            Ok(provider) => provider.capabilities().iter().map(|cap| cap.id().to_string()).collect(),
+            Err(_) => {
+                warn!("Failed to get mod provider for capabilities, returned a empty Vec");
+                Vec::new()
+            }
+        }
     }
 
     async fn requires_api_key(self) -> bool {
-        let provider = self.get_mod_provider();
-        provider.unwrap().capabilities().iter().any(|cap| cap.id() == capabilities::ids::REQUIRES_API_KEY)
+        match self.get_mod_provider() {
+            Ok(provider) => provider.capabilities().iter().any(|cap| cap.id() == capabilities::ids::REQUIRES_API_KEY),
+            Err(_) => { false }
+        }
     }
 
     async fn api_key_should_show(self) -> Option<FormSchema> {
-        let provider = self.get_mod_provider().unwrap();
+        let provider = match self.get_mod_provider() {
+          Ok(p) => p,
+          Err(_) => return None
+        };
 
         for cap in provider.capabilities() {
             if let Some(api) = cap.as_requires_api_key() {
@@ -79,7 +89,7 @@ impl CapabilityService for CapabilityServiceImpl {
         self,
         values: Vec<ApiSubmitResponse>,
     ) -> Result<bool, ApiKeyValidationError> {
-        let provider = self.get_mod_provider().unwrap();
+        let provider = self.get_mod_provider()?;
         let caps = provider.capabilities();
 
         for cap in caps {

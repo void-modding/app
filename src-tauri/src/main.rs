@@ -9,7 +9,7 @@ use tracing::{info, trace, warn};
 use tracing_log::LogTracer;
 use std::{env, sync::Arc};
 
-use crate::core::{DefaultDownloadService, load_provider_secret};
+use crate::core::DefaultDownloadService;
 
 #[tokio::main]
 async fn main() {
