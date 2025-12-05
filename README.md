@@ -55,9 +55,28 @@ Whether you're a casual gamer or a modding enthusiast, Void aims to make mod man
 
 You can either download one of the pre-compiled apps or build from source
 
-### Prerequisites
+### Building from source
+To build the project from source, you need to have [Bun](https://bun.com/docs/installation), [Rust](https://rust-lang.org/tools/install/), and [Git](https://git-scm.com/install/) installed.
+> [!IMPORTANT]
+> We haven't tested Windows builds as this is a Linux first project, if you have build issues on windows, please make an issue.
 
-WIP
+1) Clone the git repo, and cd
+```sh
+git clone https://github.com/void-modding/app.git
+cd app
+```
+2) Install dependencies
+```sh
+bun install
+```
+3) Build
+```sh
+bun run tauri build
+```
+For running in development mode you can do
+```sh
+bun run tauri dev
+```
 
 ### Installation
 
