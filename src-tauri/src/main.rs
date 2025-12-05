@@ -16,17 +16,13 @@ async fn main() {
     LogTracer::init().expect("Failed to init logging");
     tracing_subscriber::fmt().with_max_level(tracing::Level::DEBUG).try_init().ok();
 
-    info!("secret: {:?}", load_provider_secret("core:nexusmods"));
-
     #[cfg(target_os = "linux")]
     {
         info!("Running under the penguin");
         if has_proprietary_linux_driver() && is_wayland() {
             warn!("Wayland + Nvidia doesn't play nicely with Tauri, applying workaround");
 
-            unsafe {
-                env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-            }
+            env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
 
             let env_var = env::var("WEBKIT_DISABLE_DMABUF_RENDERER");
             // Check if the var applied

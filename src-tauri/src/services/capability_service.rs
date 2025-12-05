@@ -22,6 +22,7 @@ pub struct CapabilityServiceImpl {
 
 impl CapabilityServiceImpl {
     fn get_mod_provider(&self) -> Arc<dyn ModProvider> {
+        // v This is very unlikely to happen, as
         let provider_id = self.ctx.active_game_required_provider().expect("FIXME: Expect on potential null (Provider not set yet)");
         self.ctx.get_mod_provider(&provider_id).expect("Provider ID is valid, but there's no provider with that ID loaded?") // <- This won't be null if provider_id is valid
     }

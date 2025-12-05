@@ -19,7 +19,7 @@ type ApikeyModalProps = {
   onOpenChange?: (val: boolean) => void;
   onComplete?: () => Promise<void> | void;
   onCancel?: () => void;
-  initalValues?: Record<string, string>;
+  initialValues?: Record<string, string>;
   submitting?: boolean;
 };
 
@@ -73,7 +73,7 @@ export default function ApikeyModal({
   onComplete,
   submitting = false,
   open: openIntent,
-  initalValues,
+  initialValues: initalValues,
 }: ApikeyModalProps) {
   const [_open, _setOpen] = useState(openIntent ?? false);
   const [formState, setFormState] = useState<formState>(() => {
@@ -167,7 +167,7 @@ export default function ApikeyModal({
         e && typeof e === "object" && "message" in e
           ? (e as { message?: string }).message
           : String(e);
-      toast.error(`Submit failed:  ${message}`);
+      toast.error(`Submit failed: ${message}`);
     }
 
     if (res) {

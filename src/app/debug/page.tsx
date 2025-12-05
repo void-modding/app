@@ -1,10 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/primitives/button";
 import ApikeyModal from "@/components/ui/apiKeyModal/modal";
-import type { ApiSubmitResponse, FormSchema } from "@/generated/types";
+import type { FormSchema } from "@/generated/types";
 import { getTauRPC } from "@/lib/taurpc/useTaurpc";
 import { useViewManager } from "@/lib/viewSystem/useViewManager";
 import { View } from "@/lib/viewSystem/View";
@@ -99,9 +98,7 @@ export default function DebugPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      {formResult && (
-        <ApikeyModal schema={formResult} open onComplete={async (vals) => {}} />
-      )}
+      {formResult && <ApikeyModal schema={formResult} open />}
 
       <header className="mb-6">
         <h1 className="font-semibold text-2xl tracking-tight">Debug Page</h1>
