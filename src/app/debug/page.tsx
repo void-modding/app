@@ -61,6 +61,7 @@ export default function DebugPage() {
     setError(null);
 
     let cancelled = false;
+
     try {
       const game = await getCurrentGame();
       const loadedMods = await fetchModsForGame(game);
@@ -89,7 +90,10 @@ export default function DebugPage() {
 
   useEffect(() => {
     // Initial load
-    void loadMods();
+    const cleanUp = loadMods();
+    return () => {
+      cleanUp?.then((fn) => fn?.());
+    };
   }, [loadMods]);
 
   const retry = useCallback(() => {

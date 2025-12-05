@@ -149,7 +149,6 @@ export default function ApikeyModal({
   async function onSubmit() {
     const vals = formState.values;
 
-    console.debug("Got return", vals);
     const rpc = getTauRPC();
 
     // Convert vals (Record<string, string>) to ApiSubmitResponse[]
@@ -158,7 +157,6 @@ export default function ApikeyModal({
       id,
       value,
     }));
-    console.log("Submitting response", x);
     let res: boolean = false;
     try {
       res = await rpc.capabilities.api_key_submit_response(x);
@@ -168,6 +166,7 @@ export default function ApikeyModal({
           ? (e as { message?: string }).message
           : String(e);
       toast.error(`Submit failed: ${message}`);
+      return;
     }
 
     if (res) {

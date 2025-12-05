@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use lib_vmm::{capabilities::{self, api_key_capability::{ApiKeyValidationError, ApiSubmitResponse, KeyAction}, form::FormSchema}, runtime::Context, traits::mod_provider::ModProvider};
+use lib_vmm::{capabilities::{self, api_key_capability::{ApiKeyValidationError, ApiSubmitResponse, KeyAction}, form::FormSchema}, runtime::Context, traits::{mod_provider::ModProvider, provider::Provider}};
 use taurpc::procedures;
 use tracing::{error, info, warn};
 
@@ -21,10 +21,21 @@ pub struct CapabilityServiceImpl {
 }
 
 impl CapabilityServiceImpl {
-    fn get_mod_provider(&self) -> Arc<dyn ModProvider> {
-        // v This is very unlikely to happen, as
-        let provider_id = self.ctx.active_game_required_provider().expect("FIXME: Expect on potential null (Provider not set yet)");
-        self.ctx.get_mod_provider(&provider_id).expect("Provider ID is valid, but there's no provider with that ID loaded?") // <- This won't be null if provider_id is valid
+    fn get_mod_provider(&self) -> Result<Arc<dyn ModProvider>, ApiKeyValidationError> {
+        let provider_id = self
+            .ctx
+            .active_game_required_provider()
+            .ok_or(ApiKeyValidationError::ProviderError)?;
+
+        self.ctx
+            .get_mod_provider(&provider_id)
+            .map_err(|e| {
+                error!(
+                    "[CapabilityServiceImpl] Failed to get mod provider for id '{}': {:?}",
+                    provider_id, e
+                );
+                ApiKeyValidationError::ProviderError
+            })
     }
 
 }
@@ -33,16 +44,16 @@ impl CapabilityServiceImpl {
 impl CapabilityService for CapabilityServiceImpl {
     async fn list_capabilities(self) -> Vec<String> {
         let provider = self.get_mod_provider();
-        provider.capabilities().iter().map(|cap| cap.id().to_string()).collect()
+        provider.unwrap().capabilities().iter().map(|cap| cap.id().to_string()).collect()
     }
 
     async fn requires_api_key(self) -> bool {
         let provider = self.get_mod_provider();
-        provider.capabilities().iter().any(|cap| cap.id() == capabilities::ids::REQUIRES_API_KEY)
+        provider.unwrap().capabilities().iter().any(|cap| cap.id() == capabilities::ids::REQUIRES_API_KEY)
     }
 
     async fn api_key_should_show(self) -> Option<FormSchema> {
-        let provider = self.get_mod_provider();
+        let provider = self.get_mod_provider().unwrap();
 
         for cap in provider.capabilities() {
             if let Some(api) = cap.as_requires_api_key() {
@@ -68,7 +79,7 @@ impl CapabilityService for CapabilityServiceImpl {
         self,
         values: Vec<ApiSubmitResponse>,
     ) -> Result<bool, ApiKeyValidationError> {
-        let provider = self.get_mod_provider();
+        let provider = self.get_mod_provider().unwrap();
         let caps = provider.capabilities();
 
         for cap in caps {
@@ -77,9 +88,20 @@ impl CapabilityService for CapabilityServiceImpl {
                 match api.on_provided(&values) {
                     Ok(action) => {
                         if action == KeyAction::Store {
-                            match set_provider_secret(provider.id(), &values[0].value) {
+                            let secret = values.first()
+                                .map(|v| v.value.as_str())
+                                .unwrap_or_default();
+                            if secret.is_empty() {
+                                warn!("No value provided to store, but the provider told us to store!");
+                                return Err(ApiKeyValidationError::Empty)
+                            }
+
+                            match set_provider_secret(provider.id(), secret) {
                                 Ok(_) => { info!("Successfully stored key!") },
-                                Err(err) => { warn!(error = ?err, "Failed to store key");} // <- This is very unlikely to ever happen
+                                Err(err) => {
+                                    warn!(error = ?err, "Failed to store key");
+                                    return Err(ApiKeyValidationError::Other("Failed to store API key in keyring".into()))
+                                }
                             }
                         }
 
